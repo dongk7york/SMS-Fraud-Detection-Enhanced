@@ -14,7 +14,8 @@ This project builds upon [TelecomFraudDetection](https://github.com/nsalhab/Tele
 
 ## Results
 
-Enhanced SVM achieves **99.13% accuracy** with improved recall (96.77%) compared to baseline SVM (99.03% accuracy, 95.15% recall).
+Enhanced SVM achieves **99.37% accuracy** with improved recall (97.04%) compared to baseline SVM (99.03% accuracy, 95.15% recall).
+Concluded that the 14 engineered features contribute to the improved performance.
 
 ## Files
 
