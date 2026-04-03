@@ -20,11 +20,13 @@ Concluded that the 14 engineered features contribute to the improved performance
 ## Files
 
 - **sms_fraud_enhanced.py** - Main training script with baseline and enhanced approaches
+- **feature_ablation_study.py** - Engineered features study script
 - **requirements.txt** - Python dependencies
 - **CITATIONS.md** - Detailed citations for data sources and methodologies
 - **data/** - Original telecom fraud dataset and UCI SMS Spam Collection
 - **charts/** - Model comparison and visualization outputs (10 charts)
 - **baseline_vs_enhanced_results.csv** - Detailed performance metrics
+- **feature_ablation_results.csv** - Engineered features study results
 
 ## Usage
 
