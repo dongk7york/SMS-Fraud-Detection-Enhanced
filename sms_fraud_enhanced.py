@@ -10,7 +10,6 @@ This implementation extends the original work with:
 - POS-aware preprocessing with context-sensitive lemmatization
 - 14 engineered features for enhanced fraud detection
 - Combined dataset approach (original + UCI SMS Spam Collection)
-- Comprehensive visualization suite
 
 Data Sources:
 1. Original Telecom Fraud Dataset
@@ -20,15 +19,23 @@ Data Sources:
    Citation: Almeida, T. & Hidalgo, J. (2011). SMS Spam Collection [Dataset].
              UCI Machine Learning Repository. https://doi.org/10.24432/C5CC84
 
-Implementation Plan:
-1. Pre-processing: URL extraction, text cleaning, POS-aware lemmatization
-2. Baseline: TF-IDF + Logistic Regression + SVM (original approach)
-3. Enhanced: Dual Word2Vec + hybrid features + LR/SVM comparison
-4. Extended: Add Random Forest, Gradient Boosting for ensemble methods
-5. Evaluation: Compare all approaches with detailed metrics
+CODE MAP - Key Components and Line Numbers:
+===========================================
+
+1. TF-IDF Implementation: Lines 865 (TfidfVectorizer)
+
+2. Word2Vec Implementation: Line 510-640, 925 (DualWord2VecFeatureExtractor, train_url_word2vec, train_text_word2vec)
+
+3. POS-Aware Preprocessing: Line 118, 846 (clean_text)
+
+4. Engineered Features: Line 193, 850 (extract_engineered_features)
+
+4. Model Training:
+   - Baseline implementations: Line 452-504, 880 (LR and SVM - train_baseline_models)
+   - Enhanced implementations: Line 643-778, 985 (LR, SVM, RF, XGB - train_enhanced_models)
 
 Course: MATH6912 - Machine Learning in Finance
-Date: March 2026
+Date: April 2026
 """
 
 import pandas as pd
@@ -690,85 +697,6 @@ def train_enhanced_models(X_train, X_test, y_train, y_test):
 # PART 5: EXTENDED MODELS (Additional Classifiers)
 # ============================================================================
 
-def train_extended_models(X_train, X_test, y_train, y_test):
-    """
-    Extended: Random Forest, Gradient Boosting, Naive Bayes
-    """
-    print("\n" + "=" * 80)
-    print("EXTENDED MODELS (Additional Classifiers)")
-    print("=" * 80)
-    
-    results = {}
-    
-    # Random Forest
-    print("\n[1/3] Training Random Forest...")
-    rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-    rf.fit(X_train, y_train)
-    y_pred_rf = rf.predict(X_test)
-    
-    results['Random_Forest'] = {
-        'model': rf,
-        'predictions': y_pred_rf,
-        'accuracy': accuracy_score(y_test, y_pred_rf),
-        'precision': precision_score(y_test, y_pred_rf, pos_label=1),
-        'recall': recall_score(y_test, y_pred_rf, pos_label=1),
-        'f1': f1_score(y_test, y_pred_rf, pos_label=1)
-    }
-    
-    print(f"Accuracy: {results['Random_Forest']['accuracy']:.4f}")
-    print(f"Precision: {results['Random_Forest']['precision']:.4f}")
-    print(f"Recall: {results['Random_Forest']['recall']:.4f}")
-    print(f"F1-Score: {results['Random_Forest']['f1']:.4f}")
-    
-    # Gradient Boosting
-    print("\n[2/3] Training Gradient Boosting...")
-    gb = GradientBoostingClassifier(n_estimators=100, random_state=42)
-    gb.fit(X_train, y_train)
-    y_pred_gb = gb.predict(X_test)
-    
-    results['Gradient_Boosting'] = {
-        'model': gb,
-        'predictions': y_pred_gb,
-        'accuracy': accuracy_score(y_test, y_pred_gb),
-        'precision': precision_score(y_test, y_pred_gb, pos_label=1),
-        'recall': recall_score(y_test, y_pred_gb, pos_label=1),
-        'f1': f1_score(y_test, y_pred_gb, pos_label=1)
-    }
-    
-    print(f"Accuracy: {results['Gradient_Boosting']['accuracy']:.4f}")
-    print(f"Precision: {results['Gradient_Boosting']['precision']:.4f}")
-    print(f"Recall: {results['Gradient_Boosting']['recall']:.4f}")
-    print(f"F1-Score: {results['Gradient_Boosting']['f1']:.4f}")
-    
-    # Naive Bayes (only for baseline TF-IDF features, not hybrid)
-    print("\n[3/3] Training Naive Bayes...")
-    print("Note: Naive Bayes requires non-negative features")
-    
-    # Check if features are non-negative
-    if (X_train < 0).sum() > 0:
-        print("Warning: Negative features detected. Skipping Naive Bayes.")
-        results['Naive_Bayes'] = None
-    else:
-        nb = MultinomialNB()
-        nb.fit(X_train, y_train)
-        y_pred_nb = nb.predict(X_test)
-        
-        results['Naive_Bayes'] = {
-            'model': nb,
-            'predictions': y_pred_nb,
-            'accuracy': accuracy_score(y_test, y_pred_nb),
-            'precision': precision_score(y_test, y_pred_nb, pos_label=1),
-            'recall': recall_score(y_test, y_pred_nb, pos_label=1),
-            'f1': f1_score(y_test, y_pred_nb, pos_label=1)
-        }
-        
-        print(f"Accuracy: {results['Naive_Bayes']['accuracy']:.4f}")
-        print(f"Precision: {results['Naive_Bayes']['precision']:.4f}")
-        print(f"Recall: {results['Naive_Bayes']['recall']:.4f}")
-        print(f"F1-Score: {results['Naive_Bayes']['f1']:.4f}")
-    
-    return results
-
 
 # ============================================================================
 # PART 6: EVALUATION AND COMPARISON
@@ -1186,207 +1114,6 @@ def run_baseline_vs_enhanced_comparison():
     print("EXECUTION COMPLETE")
     print("=" * 80)
 
-
-def main():
-    """Main execution pipeline (original dataset only)"""
-    
-    # Initialize preprocessor
-    preprocessor = SMSPreprocessor()
-    
-    # Load and analyze data
-    df = load_and_analyze_data('data/original_data.csv')
-    
-    # Create content column (combining SMS text, Client Sender ID, and Country)
-    print("\nCreating content column...")
-    df['content'] = df['SMS text'] + ' ' + df['Client Sender ID'] + ' ' + df['Country']
-    
-    # Analyze URL patterns
-    df = analyze_url_patterns(df, preprocessor)
-    
-    # Pre-process text
-    print("\n" + "=" * 80)
-    print("PRE-PROCESSING TEXT")
-    print("=" * 80)
-    
-    print("Cleaning text and extracting features...")
-    df['cleaned_text'] = df['content'].apply(preprocessor.clean_text)
-    
-    # Extract engineered features
-    print("Extracting engineered features...")
-    engineered_features = df['content'].apply(preprocessor.extract_engineered_features)
-    engineered_df = pd.DataFrame(engineered_features.tolist())
-    
-    print(f"Engineered features shape: {engineered_df.shape}")
-    print(f"Feature names: {engineered_df.columns.tolist()}")
-    
-    # ========================================================================
-    # BASELINE: TF-IDF only
-    # ========================================================================
-    
-    print("\n" + "=" * 80)
-    print("CREATING BASELINE FEATURES (TF-IDF)")
-    print("=" * 80)
-    
-    # TF-IDF vectorization
-    tfidf = TfidfVectorizer(max_features=1500, ngram_range=(1, 2))
-    X_tfidf = tfidf.fit_transform(df['cleaned_text'])
-    
-    print(f"TF-IDF shape: {X_tfidf.shape}")
-    
-    # Split data
-    y = df['Case']
-    X_train_tfidf, X_test_tfidf, y_train, y_test = train_test_split(
-        X_tfidf, y, test_size=0.2, random_state=42, stratify=y
-    )
-    
-    print(f"Training set: {X_train_tfidf.shape}")
-    print(f"Test set: {X_test_tfidf.shape}")
-    
-    # Train baseline models
-    baseline_results = train_baseline_models(
-        X_train_tfidf, X_test_tfidf, y_train, y_test
-    )
-    
-    # ========================================================================
-    # ENHANCED: Dual Word2Vec + Hybrid Features
-    # ========================================================================
-    
-    print("\n" + "=" * 80)
-    print("CREATING ENHANCED FEATURES (Dual Word2Vec + Hybrid)")
-    print("=" * 80)
-    
-    # Train URL Word2Vec
-    url_w2v = train_url_word2vec(df, preprocessor)
-    
-    # Train Text Word2Vec on combined dataset
-    text_w2v = train_text_word2vec(df)
-    print(f"DEBUG: text_w2v type: {type(text_w2v)}")
-    print(f"DEBUG: text_w2v is None: {text_w2v is None}")
-    if text_w2v is not None:
-        print(f"DEBUG: text_w2v.wv.vector_size: {text_w2v.wv.vector_size}")
-        print(f"DEBUG: text_w2v vocabulary size: {len(text_w2v.wv)}")
-    
-    # Extract Text Word2Vec embeddings
-    print("\nExtracting Text Word2Vec embeddings...")
-    text_w2v_embeddings = []
-    for text in df['cleaned_text']:
-        tokens = text.split()
-        vectors = []
-        for token in tokens:
-            if token in text_w2v.wv:
-                vectors.append(text_w2v.wv[token])
-        if vectors:
-            text_w2v_embeddings.append(np.mean(vectors, axis=0))
-        else:
-            text_w2v_embeddings.append(np.zeros(100))
-    
-    text_w2v_features = np.array(text_w2v_embeddings)
-    print(f"Text Word2Vec features shape: {text_w2v_features.shape}")
-    print(f"DEBUG: Sample text W2V embedding (first 5 values): {text_w2v_features[0][:5]}")
-    print(f"DEBUG: Text W2V non-zero count: {np.count_nonzero(text_w2v_features)}")
-    
-    # Extract URL Word2Vec embeddings (if URLs exist)
-    print("\nExtracting URL Word2Vec embeddings...")
-    url_w2v_embeddings = []
-    feature_extractor = DualWord2VecFeatureExtractor(url_w2v, text_w2v)
-    
-    for text in df['content']:
-        urls = preprocessor.extract_urls(text)
-        if urls and url_w2v is not None:
-            url_vectors = []
-            for url in urls:
-                url_vec = feature_extractor.get_url_embedding(url, preprocessor)
-                url_vectors.append(url_vec)
-            url_w2v_embeddings.append(np.mean(url_vectors, axis=0))
-        else:
-            url_w2v_embeddings.append(np.zeros(100))
-    
-    url_w2v_features = np.array(url_w2v_embeddings)
-    print(f"URL Word2Vec features shape: {url_w2v_features.shape}")
-    print(f"DEBUG: Sample URL W2V embedding (first 5 values): {url_w2v_features[0][:5]}")
-    print(f"DEBUG: URL W2V non-zero count: {np.count_nonzero(url_w2v_features)}")
-    
-    # Combine features: TF-IDF + Text Word2Vec + URL Word2Vec + Engineered
-    from scipy.sparse import hstack as sparse_hstack
-    
-    # Convert TF-IDF to dense and combine with other features
-    print("\nDEBUG: Converting TF-IDF to dense...")
-    print(f"DEBUG: X_tfidf type: {type(X_tfidf)}")
-    print(f"DEBUG: X_tfidf shape: {X_tfidf.shape}")
-    
-    X_tfidf_dense = X_tfidf.toarray()
-    print(f"DEBUG: X_tfidf_dense shape: {X_tfidf_dense.shape}")
-    print(f"DEBUG: X_tfidf_dense type: {type(X_tfidf_dense)}")
-    
-    print("\nDEBUG: Combining features...")
-    print(f"DEBUG: text_w2v_features shape: {text_w2v_features.shape}")
-    print(f"DEBUG: url_w2v_features shape: {url_w2v_features.shape}")
-    print(f"DEBUG: engineered_df.values shape: {engineered_df.values.shape}")
-    
-    X_hybrid = np.hstack([
-        X_tfidf_dense,
-        text_w2v_features,
-        url_w2v_features,
-        engineered_df.values
-    ])
-    
-    print(f"\n{'='*80}")
-    print("FEATURE COMBINATION SUMMARY")
-    print(f"{'='*80}")
-    print(f"Hybrid features shape: {X_hybrid.shape}")
-    print(f"  - TF-IDF: {X_tfidf.shape} -> {X_tfidf_dense.shape}")
-    print(f"  - Text Word2Vec: {text_w2v_features.shape}")
-    print(f"  - URL Word2Vec: {url_w2v_features.shape}")
-    print(f"  - Engineered: {engineered_df.shape}")
-    print(f"Expected total features: {X_tfidf_dense.shape[1]} + {text_w2v_features.shape[1]} + {url_w2v_features.shape[1]} + {engineered_df.shape[1]} = {X_tfidf_dense.shape[1] + text_w2v_features.shape[1] + url_w2v_features.shape[1] + engineered_df.shape[1]}")
-    print(f"Actual total features: {X_hybrid.shape[1]}")
-    print(f"{'='*80}")
-    
-    # Split hybrid data
-    X_train_hybrid, X_test_hybrid, y_train_h, y_test_h = train_test_split(
-        X_hybrid, y, test_size=0.2, random_state=42, stratify=y
-    )
-    
-    # Train enhanced models
-    enhanced_results = train_enhanced_models(
-        X_train_hybrid, X_test_hybrid, y_train_h, y_test_h
-    )
-    
-    # ========================================================================
-    # EXTENDED: Additional Classifiers
-    # ========================================================================
-    
-    # Train on baseline features first
-    extended_baseline = train_extended_models(
-        X_train_tfidf, X_test_tfidf, y_train, y_test
-    )
-    
-    # Train on enhanced features
-    extended_enhanced = train_extended_models(
-        X_train_hybrid, X_test_hybrid, y_train_h, y_test_h
-    )
-    
-    # Rename for clarity
-    extended_baseline = {f"Baseline_{k}": v for k, v in extended_baseline.items()}
-    extended_enhanced = {f"Enhanced_{k}": v for k, v in extended_enhanced.items()}
-    
-    # ========================================================================
-    # COMPARISON AND VISUALIZATION
-    # ========================================================================
-    
-    all_extended = {**extended_baseline, **extended_enhanced}
-    comparison_df = compare_all_models(baseline_results, enhanced_results, all_extended)
-    
-    # Create visualizations
-    plot_comparison(comparison_df)
-    
-    # Save results
-    comparison_df.to_csv('model_results.csv', index=False)
-    print("\nResults saved: model_results.csv")
-    
-    print("\n" + "=" * 80)
-    print("EXECUTION COMPLETE")
-    print("=" * 80)
 
 
 if __name__ == "__main__":
